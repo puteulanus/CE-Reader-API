@@ -17,6 +17,11 @@ case 'list':
     $ce->CeLoadPage($_GET['num']); // 载入指定页面
     $list = $ce->GetMangaList();
     $cover = $ce->GetMangaCover($size,$sizetype);
+    $tmp_array = array();
+    foreach($list as $id => $value){
+        $tmp_array = array_merge($tmp_array,array($id));
+    }
+    $cover = array_combine($tmp_array,$cover);
     echo json_encode(array('list' => $list,'cover' => $cover));
     break;
     
