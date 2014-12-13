@@ -7,16 +7,15 @@ $ce = new CEpiture; // 实例化CEPicture对象
 $ce->api_url = API_URL; // 设定API地址
 switch ($_GET['command']){
 case 'list':
-    if (!$_GET['sizetype']){
-        $sizetype = 'w';
-        $size = '300';
+    if (!$_GET['w']){
+        $width = 300;
     }else{
-        $sizetype = $_GET['sizetype'];
-        $size = $_GET['size'];
+        $width = $_GET['w'];
     }
+    $height = (int)$width * 1.4;
     $ce->CeLoadPage($_GET['num']); // 载入指定页面
     $list = $ce->GetMangaList();
-    $cover = $ce->GetMangaCover($size,$sizetype);
+    $cover = $ce->GetMangaCover($width,$height);
     $tmp_array = array();
     foreach($list as $id => $value){
         $tmp_array = array_merge($tmp_array,array($id));
