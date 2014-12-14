@@ -26,21 +26,6 @@ case 'list':
     
 case 'info':
     $info = GetInfoFromCache($_GET['num']);
-    // 检查CDN是否正常
-    if (file_get_contents(CDN_URL."?check=on") == 'OK'){
-        $pic_server = CDN_URL;
-    }else{// CDN故障时切到本体输出
-        $pic_server = SELF_URL;
-    }
-    foreach($info['thumbnail'] as &$key){
-        $key = $pic_server.'?pic='.$key;
-        unset($key);
-    }
-    foreach($info['manga'] as &$key){
-        $key = $pic_server.'?pic='.$key;
-        unset($key);
-    }
-    echo json_encode($info);
     break;
     
 case 'pic':
@@ -68,9 +53,11 @@ function GetInfoFromCache($id){
     $stmt_read -> close();
     $array_result = json_decode($json_result,true);
     if ($array_result){
+        if (check_pic($array_result['manga']['0'])){
         $stmt_write -> close();
         $db_link -> close();
         return $array_result;
+        }
     }
     global $ce;
     $info = $ce->GetMangaInfo($id);
@@ -78,5 +65,36 @@ function GetInfoFromCache($id){
     $stmt_write -> execute();
     $stmt_write -> close();
     $db_link -> close();
+    // 检查CDN是否正常
+    if (file_get_contents(CDN_URL."?check=on") == 'OK'){
+        $pic_server = CDN_URL;
+    }else{// CDN故障时切到本体输出
+        $pic_server = SELF_URL;
+    }
+    foreach($info['thumbnail'] as &$key){
+        $key = $pic_server.'?pic='.$key;
+        unset($key);
+    }
+    foreach($info['manga'] as &$key){
+        $key = $pic_server.'?pic='.$key;
+        unset($key);
+    }
     return $info;
+}
+
+function check_pic($pic_url){
+    $curl = curl_init();
+    curl_setopt($curl,CURLOPT_URL,$pic_url);// 获取内容url
+    curl_setopt($curl,CURLOPT_HEADER,1);// 获取http头信息
+    curl_setopt($curl,CURLOPT_NOBODY,1);// 不返回html的body信息
+    curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);// 返回数据流，不直接输出
+    curl_setopt($curl,CURLOPT_TIMEOUT,10); // 超时时长，单位秒
+    curl_exec($curl);
+    if (curl_getinfo($curl,CURLINFO_HTTP_CODE) != '200'){
+        $status = false;
+    }else{
+        $status = true;
+    }
+    curl_close($curl);
+    return $status;
 }
