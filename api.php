@@ -26,6 +26,13 @@ case 'list':
     
 case 'info':
     $info = GetInfoFromCache($_GET['num']);
+    $tmp_array = array();
+    foreach($info['manga'] as $id => $key){
+        $tmp_array += array($id =>(int)$id+1000);
+    }
+    $info['manga'] = array_combine($tmp_array,$info['manga']);
+    $info['thumbnail'] = array_combine($tmp_array,$info['thumbnail']);
+    echo json_encode($info);
     break;
     
 case 'pic':
