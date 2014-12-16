@@ -54,9 +54,23 @@ function GetInfoFromCache($id){
     $array_result = json_decode($json_result,true);
     if ($array_result){
         if (check_pic($array_result['manga']['0'])){
-        $stmt_write -> close();
-        $db_link -> close();
-        return $array_result;
+            $stmt_write -> close();
+            $db_link -> close();
+            // 检查CDN是否正常
+                if (file_get_contents(CDN_URL."?check=on") == 'OK'){
+                    $pic_server = CDN_URL;
+                }else{// CDN故障时切到本体输出
+                    $pic_server = SELF_URL;
+                }
+                foreach($array_result['thumbnail'] as &$key){
+                    $key = $pic_server.'?pic='.$key;
+                    unset($key);
+                }
+            foreach($array_result['manga'] as &$key){
+                $key = $pic_server.'?pic='.$key;
+                unset($key);
+            }
+            return $array_result;
         }
     }
     global $ce;
