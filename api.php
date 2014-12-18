@@ -52,7 +52,7 @@ default:
 function GetInfoFromCache($id){
     $db_link = new mysqli(db_host,db_user,db_passwd,db_name,db_port);
     $stmt_read = $db_link -> prepare("SELECT information FROM ".db_prefix."cache WHERE id=?");
-    $stmt_write = $db_link -> prepare("INSERT INTO ".db_prefix."cache (id,information) VALUES (?,?)");
+    $stmt_write = $db_link -> prepare("INSERT INTO ".db_prefix."cache (id,information) VALUES (?,?) ON DUPLICATE KEY UPDATE information=?");
     $stmt_read -> bind_param("s",$id);
     $stmt_read -> execute();
     $stmt_read -> bind_result($json_result);
@@ -82,7 +82,7 @@ function GetInfoFromCache($id){
     }
     global $ce;
     $info = $ce->GetMangaInfo($id);
-    $stmt_write -> bind_param("ss",$id,json_encode($info));
+    $stmt_write -> bind_param("sss",$id,json_encode($info),json_encode($info));
     $stmt_write -> execute();
     $stmt_write -> close();
     $db_link -> close();
